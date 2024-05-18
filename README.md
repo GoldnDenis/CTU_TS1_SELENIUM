@@ -18,4 +18,4 @@ This project's objective is to test out the basic functionality of the common-us
 - [ ] Vytvorte 2* detailni testovaci scenare.
 ### Implementace testů (Selenium)
 - [ ] 10 Selenium testů (každý za 1 bod)   
-- [ ] Data provider (CSV) pro minimálně 3 testy (každý za 2 body)
+- [x] Data provider (CSV) pro minimálně 3 testy (každý za 2 body)
