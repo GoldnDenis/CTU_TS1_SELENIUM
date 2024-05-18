@@ -40,4 +40,8 @@ public class AbstractPage {
     protected void waitUntilVisible(WebElement element) {
         wait.until(ExpectedConditions.visibilityOf(element));
     }
+
+    protected void waitUntilClickable(WebElement element) {
+        wait.until(ExpectedConditions.elementToBeClickable(element));
+    }
 }
