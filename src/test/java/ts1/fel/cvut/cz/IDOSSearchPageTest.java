@@ -7,8 +7,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import ts1.fel.cvut.cz.pom.IDDOSCartPage;
 import ts1.fel.cvut.cz.pom.IDOSSearchPage;
-import ts1.fel.cvut.cz.utils.DateStringUtility;
+import ts1.fel.cvut.cz.utils.DateTimeStringUtility;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -51,47 +52,97 @@ public class IDOSSearchPageTest {
         String limitTime = "20:12";
         for (String time : searchPage.fillInTimeField(limitTime)
                 .clickSearch()
-                .getFoundTimes()) {
-            assertTrue(DateStringUtility.timeIsGreaterOrEquals(time, limitTime));
+                .getFoundDepartureTimes()) {
+            assertTrue(DateTimeStringUtility.timeIsGreaterOrEquals(time, limitTime));
         }
     }
 
-    @ParameterizedTest(name = "{0} should be shifted to the next day and be found.")
+    @ParameterizedTest(name = "{0} should be shifted to the next day. Results are only that day.")
     @CsvFileSource(resources = {"/testingdata/dates.csv"})
-    void nextDayRoutesSearch_parametrized_test(String date) {
+    void nextDayRoutesSearch_allFoundDatesOnlyThatDay_parametrized_test(String date) {
         String[] specificDate = date.split("\\.");
         LocalDate testDate = LocalDate.of(Integer.parseInt(specificDate[2]), Integer.parseInt(specificDate[1]), Integer.parseInt(specificDate[0]) + 1);
-        String foundDate = searchPage.fillInDateField(date)
+        String expDate = testDate.format(DateTimeFormatter.ofPattern("dd.MM."));
+
+        for (String foundDate : searchPage.fillInDateField(date)
+                .clickSearch()
                 .clickNextDayButton()
                 .clickSearch()
-                .getDate();
-        foundDate = DateStringUtility.normalizeDate(foundDate.split(" ")[0]);
-
-        String expectedDate = testDate.format(DateTimeFormatter.ofPattern("dd.MM."));
-        assertEquals(expectedDate, foundDate);
+                .getFoundDates()) {
+            assertEquals(expDate, DateTimeStringUtility.normalizeDate(foundDate));
+        }
     }
 
     @Test
-    void ticketDiscountISIC_from18to25Age_test() {
+    void ticketDiscountISIC_priceLesserThan50percentOff_from18to25Age_test() {
         String ageEC = "18-25";
-        String discount = "karta ISIC";
-        searchPage.clickEditTravelerInfoButton()
+        String name = "Vojtech";
+        String surname = "Marek";
+        double expDiscount = 50;
+
+        IDDOSCartPage cartPage = searchPage.clickNextDayButton()
+                .clickSearch()
+                .findAndClickAddToShoppingCart()
+                .clickTicketBackNoButton();
+
+        double originalPrice = cartPage.getPriceValue();
+
+        cartPage = cartPage.clickEditTravelerInfoButton()
+                .clickAgeECSelector()
                 .selectAgeEC(ageEC)
+                .fillNameField(name)
+                .fillSurnameField(surname)
                 .clickDiscountCardButton()
-                .selectDiscountCard(discount)
+                .selectISICDiscountCard()
                 .clickSaveDiscountCardButton()
-                .clickSavePassengerButton()
+                .clickSavePassengerButton();
 
-        searchPage = searchPage
-                .fillInDateField(testDate.format(DateTimeFormatter.ofPattern("dd.MM.")))
-                .clickSearch();
-        int standardPrice = searchPage.getPriceValue();
-        int newPrice = searchPage.clickEditTravelerInfoButton()
-                .selectAgeEC(ageEC)
-                .clickSavePassengerButton()
-                .getPriceValue();
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-        int actualDiscount = 100 - (newPrice * 100) / standardPrice;
+        double discountPrice = cartPage.getPriceValue();
+
+        double actualDiscount = 100 - (discountPrice * 100) / originalPrice;
         assertTrue(actualDiscount >= expDiscount);
+    }
+
+    @Test
+    void addingSeveralTickets_totalTripleValue_threePassengers_test() {
+        String ageEC = "18-25";
+        String name = "Vojtech";
+        String surname = "Marek";
+
+        IDDOSCartPage cartPage = searchPage.clickNextDayButton()
+                .clickSearch()
+                .findAndClickAddToShoppingCart()
+                .clickTicketBackNoButton();
+
+        double originalPrice = cartPage.getPriceValue();
+        int numOfPassengers = 3;
+
+        double expTotal = originalPrice * numOfPassengers;
+
+        for (int i = 0; i < numOfPassengers; i++) {
+            if (i == 0) cartPage = cartPage.clickEditTravelerInfoButton();
+            else cartPage = cartPage.clickAddNewPassenger();
+            cartPage = cartPage.clickAgeECSelector(i)
+                    .selectAgeEC(ageEC, i)
+                    .fillNameField(name, i)
+                    .fillSurnameField(surname, i);
+        }
+        cartPage = cartPage.clickSavePassengerButton();
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        double totalPrice = cartPage.getPriceValue();
+
+        assertEquals(expTotal, totalPrice);
     }
 }

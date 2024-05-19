@@ -1,6 +1,6 @@
 package ts1.fel.cvut.cz.utils;
 
-public class DateStringUtility {
+public class DateTimeStringUtility {
     public static boolean timeIsGreaterOrEquals(String t1, String t2) {
         String[] times1 = t1.split(":");
         String[] times2 = t2.split(":");
@@ -24,5 +24,18 @@ public class DateStringUtility {
             normDate.append(d).append(".");
         }
         return normDate.toString();
+    }
+
+    public static String[] splitTimeAndDate(String data) {
+        data = data.split(" ")[0];
+
+        StringBuilder time = new StringBuilder();
+        StringBuilder date = new StringBuilder();
+
+        String [] tmp = data.split(":");
+        time.append(tmp[0]).append(':').append(tmp[1], 0, 2);
+        date.append(tmp[1].substring(2));
+
+        return new String[]{time.toString(), date.toString()};
     }
 }

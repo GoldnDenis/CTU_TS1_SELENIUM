@@ -5,6 +5,7 @@ import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
+import ts1.fel.cvut.cz.utils.DateTimeStringUtility;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +33,12 @@ public class IDOSSearchPage extends AbstractPage {
     private WebElement searchButton;
     @FindBy(css = "#ResultYourWay > div > div > ul > li")
     private WebElement passengerInfo;
-    @FindBy(css = "#modalContent-1716068661001 > div > div > div > div > ol > li > div > div.row > div.column.reduction-wrapper > span > a")
+    @FindBy(css = "a.passengers_reduction1")
     private WebElement discountCardsButton;
     @FindBy(css = "#save-reduction")
     private WebElement saveDiscountCardButton;
+    @FindBy(css = "#isBackNo")
+    private WebElement findTicketBackNoButton;
 
     public IDOSSearchPage(WebDriver driver) {
         super(driver, driver.getCurrentUrl());
@@ -115,36 +118,55 @@ public class IDOSSearchPage extends AbstractPage {
         return this;
     }
 
-    public int getPriceValue() {
-        List<WebElement> priceValueElements = driver.findElements(By.cssSelector("span[class='price-value']"));
-        for (WebElement e: priceValueElements) {
-            waitUntilClickable(e);
-            String price = e.getText();
-            if (price.isEmpty()) return -1;
-            return Integer.parseInt(price);
-        }
-        return -1;
-    }
-
     public String getPassengerInfo() {
         waitUntilVisible(passengerInfo);
         return passengerInfo.getText();
     }
 
-    public String getDate() {
-        waitUntilVisible(dateField);
-        return dateField.getAttribute("value");
+    public List<String> getFoundDates() {
+        List<String> dates = new ArrayList<>();
+        List<WebElement> dateElements = driver.findElements(By.cssSelector("h2.reset.date"));
+        for (WebElement e: dateElements) {
+            waitUntilClickable(e);
+            dates.add(DateTimeStringUtility.splitTimeAndDate(e.getText())[1]);
+        }
+        return dates;
     }
 
-    public List<String> getFoundTimes() {
+    public List<String> getFoundDepartureTimes() {
         List<String> times = new ArrayList<>();
-        List<WebElement> priceValueElements = driver.findElements(By.cssSelector("h2.reset.date"));
-        for (WebElement e: priceValueElements) {
+        List<WebElement> timeElements = driver.findElements(By.cssSelector("h2.reset.date"));
+        for (WebElement e: timeElements) {
             waitUntilClickable(e);
-            String time = e.getText().substring(0, 5);
-            times.add(time);
+            times.add(DateTimeStringUtility.splitTimeAndDate(e.getText())[0]);
         }
         return times;
+    }
+
+    public List<String> getFoundArrivalTimes() {
+        List<String> times = new ArrayList<>();
+        List<WebElement> timeElements = driver.findElements(By.cssSelector("li.item.active.last p.reset.time"));
+        for (WebElement e: timeElements) {
+            waitUntilClickable(e);
+            times.add(e.getText());
+        }
+        return times;
+    }
+
+    public IDOSSearchPage findAndClickAddToShoppingCart() {
+        List<WebElement> timeElements = driver.findElements(By.cssSelector("a.btn.btn-buy.btn-lightgreen.btn-shadow.ico-basket"));
+        for (WebElement e: timeElements) {
+            waitUntilClickable(e);
+            e.click();
+            return this;
+        }
+        return this;
+    }
+
+    public IDDOSCartPage clickTicketBackNoButton() {
+        waitUntilClickable(findTicketBackNoButton);
+        findTicketBackNoButton.click();
+        return new IDDOSCartPage(driver);
     }
 
     public IDOSSearchPage clickAcceptCookies() {
@@ -160,32 +182,12 @@ public class IDOSSearchPage extends AbstractPage {
     }
 
     public IDOSSearchPage selectAgeEC(String ageEC) {
+        waitUntilVisible(ageECSelector);
         waitUntilClickable(ageECSelector);
         ageECSelector.click();
         WebElement option = driver.findElement(By.xpath("//option[contains(text(), '" + ageEC + "')]"));
         waitUntilVisible(option);
         option.click();
-        return this;
-    }
-
-    public IDOSSearchPage clickDiscountCardButton() {
-        waitUntilClickable(discountCardsButton);
-        discountCardsButton.click();
-        return this;
-    }
-
-    public IDOSSearchPage clickSaveDiscountCardButton() {
-        waitUntilClickable(saveDiscountCardButton);
-        saveDiscountCardButton.click();
-        return this;
-    }
-
-    public IDOSSearchPage selectDiscountCard(String card) {
-        WebElement label = driver.findElement(By.xpath("//label[contains(text(), '" + card + "')]"));
-        waitUntilVisible(label);
-        WebElement checkOption = driver.findElement(By.id(label.getAttribute("for")));
-        waitUntilClickable(checkOption);
-        checkOption.click();
         return this;
     }
 

@@ -9,6 +9,10 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import ts1.fel.cvut.cz.pom.IDOSMainPage;
 import ts1.fel.cvut.cz.pom.IDOSSearchPage;
+import ts1.fel.cvut.cz.utils.DateTimeStringUtility;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -85,5 +89,18 @@ public class IDOSMainPageTest {
 
         assertEquals(from ,searchPage.getFromFieldValue());
         assertEquals(to ,searchPage.getToFieldValue());
+    }
+
+    @Test
+    void arrivalRoutesSearch__allFoundTimesAreEarlier_15h00m_test() {
+        String departureTime = "15:00";
+        for (String time : mainPage.fillInFromField("Praha")
+                .fillInToField("Brno")
+                .fillInTimeField(departureTime)
+                .checkArrivalBox()
+                .clickSearchButton()
+                .getFoundArrivalTimes()) {
+            assertTrue(DateTimeStringUtility.timeIsGreaterOrEquals(departureTime, time));
+        }
     }
 }
