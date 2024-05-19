@@ -14,10 +14,6 @@ public class IDDOSCartPage extends AbstractPage {
     private WebElement editPassengerInfoButton;
     @FindBy(css = "#save-passengers")
     private WebElement savePassengerButton;
-    @FindBy(css = "#connection-filter > div.submit > button")
-    private WebElement searchButton;
-    @FindBy(css = "#ResultYourWay > div > div > ul > li")
-    private WebElement passengerInfo;
     @FindBy(css = "a.passengers_reduction1")
     private WebElement discountCardsButton;
     @FindBy(css = "#save-reduction")

@@ -11,9 +11,6 @@ import ts1.fel.cvut.cz.pom.IDOSMainPage;
 import ts1.fel.cvut.cz.pom.IDOSSearchPage;
 import ts1.fel.cvut.cz.utils.DateTimeStringUtility;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class IDOSMainPageTest {
@@ -59,11 +56,9 @@ public class IDOSMainPageTest {
         assertTrue(searchPage.getErrorMessagePopUp().contains(expError));
     }
 
-    @ParameterizedTest(name = "Should search for a route: from {0} to {1}, but not find.")
+    @ParameterizedTest(name = "Should search for a route: from {0} to {1} and get an Error - \"{2}\".")
     @CsvFileSource(resources = {"/testingdata/non-existing_routes.csv"})
-    void nonExistingRouteSearch_parametrized_test(String from, String to) {
-        String expError = "Takové místo neznáme.";
-
+    void nonExistingRouteSearch_parametrized_test(String from, String to, String expErrorMessage) {
         IDOSSearchPage searchPage = mainPage.fillInFromField(from)
                 .fillInToField(to)
                 .clickSearchButton();
@@ -72,23 +67,23 @@ public class IDOSMainPageTest {
         String foundToError = searchPage.getToErrorFieldText();
 
         if (!foundFromError.isEmpty()) {
-            assertEquals(expError, foundFromError);
+            assertEquals(expErrorMessage, foundFromError);
         }
 
         if (!foundToError.isEmpty()) {
-            assertEquals(expError, foundToError);
+            assertEquals(expErrorMessage, foundToError);
         }
     }
 
     @ParameterizedTest(name = "Should search for a route: from {0} to {1} and find.")
     @CsvFileSource(resources = {"/testingdata/existing_routes.csv"})
-    void existingRoutesSearch_parametrized_test(String from, String to) {
-        IDOSSearchPage searchPage = mainPage.fillInFromField(from)
-                .fillInToField(to)
+    void existingRoutesSearch_parametrized_test(String expFrom, String expTo) {
+        IDOSSearchPage searchPage = mainPage.fillInFromField(expFrom)
+                .fillInToField(expTo)
                 .clickSearchButton();
 
-        assertEquals(from ,searchPage.getFromFieldValue());
-        assertEquals(to ,searchPage.getToFieldValue());
+        assertEquals(expFrom ,searchPage.getFromFieldValue());
+        assertEquals(expTo ,searchPage.getToFieldValue());
     }
 
     @Test

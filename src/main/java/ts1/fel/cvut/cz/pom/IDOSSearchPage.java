@@ -33,10 +33,6 @@ public class IDOSSearchPage extends AbstractPage {
     private WebElement searchButton;
     @FindBy(css = "#ResultYourWay > div > div > ul > li")
     private WebElement passengerInfo;
-    @FindBy(css = "a.passengers_reduction1")
-    private WebElement discountCardsButton;
-    @FindBy(css = "#save-reduction")
-    private WebElement saveDiscountCardButton;
     @FindBy(css = "#isBackNo")
     private WebElement findTicketBackNoButton;
 
